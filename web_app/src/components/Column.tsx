@@ -18,6 +18,7 @@ export const Column: React.FC<ColumnRef> = (props: ColumnRef) => {
         style={
             (() => {
                 const baseStyle: React.CSSProperties = {
+                    backgroundColor: "white",
                     display: "flex",
                     flex: "auto",
                     flexDirection: "column",
