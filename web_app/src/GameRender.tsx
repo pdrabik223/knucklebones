@@ -7,7 +7,8 @@ import * as React from 'react'
 import { Canvas } from '@react-three/fiber';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 // import statueUrl from '../public/gravestones.obj'
-
+import { useMemo } from "react";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
 export function Box(props: JSX.IntrinsicElements['mesh']) {
     // This reference will give us direct access to the THREE.Mesh object
@@ -36,24 +37,33 @@ export function Box(props: JSX.IntrinsicElements['mesh']) {
 
 
 
-
-const loader = new OBJLoader();
-
-
-const loadOBJ = async () => {
-    let result = loader.loadAsync('/gravestones.obj')
-    return result
+interface NeonMaterialProps {
+    color?: string;
+    intensity?: number;
 }
 
-const assets = new Map<String, THREE.Group<THREE.Object3DEventMap>>();
+export function useNeonMaterial({
+    color = "#00ffff",
+    intensity = 5,
+}: NeonMaterialProps) {
+    return useMemo(() => {
+        const material = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(color),
+            emissive: new THREE.Color(color),
+            emissiveIntensity: intensity,
+            metalness: 0.2,
+            roughness: 0.3,
+        });
 
-assets.set("one", await loadOBJ())
-assets.set("two", await loadOBJ())
+        return material;
+    }, [color, intensity]);
+}
 
 export interface ObRef {
     position: THREE.Vector3,
     scale: THREE.Vector3,
-    path: string
+    path: string,
+    color: string;
 }
 
 export function Obj(props: ObRef) {
@@ -63,7 +73,17 @@ export function Obj(props: ObRef) {
     const [clicked, click] = useState(false)
     const [hover, onHover] = useState(false)
 
+    const neonMaterial = useNeonMaterial({ color: props.color, intensity: 0.9 });
+
     const obj = useLoader(OBJLoader, props.path) as THREE.Group
+
+    React.useEffect(() => {
+        obj.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+                (child as THREE.Mesh).material = neonMaterial;
+            }
+        });
+    }, [obj, neonMaterial]);
 
     return (
         <primitive
@@ -113,33 +133,43 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
         return () => observer.disconnect();
     }, []);
 
-    return <div ref={ref}><Canvas style={{ backgroundColor: "#3c5fdd", height: size.height + "px", width: size.width + "px" }}>
+    return <div ref={ref}>
+        <Canvas
+            gl={{ toneMapping: THREE.ACESFilmicToneMapping }}
+            style={{ backgroundColor: "#101218ff", height: size.height + "px", width: size.width + "px" }}>
 
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-        <pointLight position={[-20, -20, -20]} />
+            {/* <ambientLight intensity={0.5} color={0xcccccc} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+            <pointLight position={[-20, -20, -100]} color={0xffffff} /> */}
 
-        <Obj position={new THREE.Vector3(6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_A.obj"} />
-        <Obj position={new THREE.Vector3(-6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_B.obj"} />
-        <Obj position={new THREE.Vector3(0, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_C.obj"} />
+            <Obj color={"#00ff37"} position={new THREE.Vector3(6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_A.obj"} />
+            <Obj color={"#f1ff2b"} position={new THREE.Vector3(-6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_B.obj"} />
+            <Obj color={"#0099ff"} position={new THREE.Vector3(0, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_C.obj"} />
 
-        <axesHelper />
-        <PerspectiveCamera
-            makeDefault
-            position={[0, 10, 25]}
-            lookAt={[0, 0, 0]}
-            fov={75}
-            near={0.1}
-            far={1000}
-        />
-        {/* <OrbitControls
+            <axesHelper />
+            <PerspectiveCamera
+                makeDefault
+                position={[0, 10, 25]}
+                lookAt={[0, 0, 0]}
+                fov={75}
+                near={0.1}
+                far={1000}
+            />
+            {/* <OrbitControls
             maxPolarAngle={Math.PI / 2.2}
             minPolarAngle={Math.PI / 20}
             maxDistance={8}
             minDistance={1}
             enablePan={false}
             target={[0, 1.5, 0]} /> */}
-    </Canvas>
+            <EffectComposer>
+                <Bloom
+                    intensity={0.2}
+                    luminanceThreshold={0}
+                    luminanceSmoothing={0.8}
+                />
+            </EffectComposer>
+        </Canvas>
     </div>;
 
 };
