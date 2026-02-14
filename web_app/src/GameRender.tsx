@@ -10,31 +10,83 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { useMemo } from "react";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
-export function Box(props: JSX.IntrinsicElements['mesh']) {
-    // This reference will give us direct access to the THREE.Mesh object
-    const ref = useRef<THREE.Mesh>(null!)
-    // Hold state for hovered and clicked events
-    const [hovered, hover] = useState(false)
-    const [clicked, click] = useState(false)
-    // Rotate mesh every frame, this is outside of React without overhead
-    useFrame((state, delta) => (ref.current.rotation.x += 0.01))
+export function createFresnelMaterial(color: string) {
+    return new THREE.ShaderMaterial({
+        uniforms: {
+            uColor: { value: new THREE.Color(color) },
+            uPower: { value: 1.5 },
+            uIntensity: { value: 1.4 },
+        },
+        vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
 
-    return (
-        <mesh
-            {...props}
-            ref={ref}
-            scale={clicked ? 1.5 : 1}
-            onClick={(event) => click(!clicked)}
-            onPointerOver={(event) => hover(true)}
-            onPointerOut={(event) => hover(false)}>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-        </mesh>
-    )
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
 
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = worldPosition.xyz;
+
+        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+      }
+    `,
+        fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uPower;
+      uniform float uIntensity;
+
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+
+      void main() {
+        vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
+        float fresnel = pow(1.0 - dot(viewDirection, vNormal), uPower);
+        float glow = fresnel * uIntensity;
+
+        gl_FragColor = vec4(uColor * glow, glow);
+      }
+    `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+        depthWrite: false,
+    });
 }
 
+interface NeonMeshProps {
+    geometry: THREE.BufferGeometry;
+    color?: string;
+}
 
+export function NeonMesh({ geometry, color = "#00ffff" }: NeonMeshProps) {
+    const coreMaterial = useMemo(() => {
+        return new THREE.MeshStandardMaterial({
+            color: new THREE.Color(color),
+            emissive: new THREE.Color(color),
+            emissiveIntensity: 8,
+            roughness: 0.2,
+            metalness: 0.3,
+        });
+    }, [color]);
+
+    const fresnelMaterial = useMemo(() => {
+        return createFresnelMaterial(color);
+    }, [color]);
+
+    return (
+        <>
+            {/* Core neon mesh */}
+            <mesh geometry={geometry} material={coreMaterial} />
+
+            {/* Slightly scaled glow shell */}
+            <mesh
+                geometry={geometry}
+                material={fresnelMaterial}
+                scale={1.05}
+            />
+        </>
+    );
+}
 
 
 interface NeonMaterialProps {
@@ -73,29 +125,44 @@ export function Obj(props: ObRef) {
     const [clicked, click] = useState(false)
     const [hover, onHover] = useState(false)
 
+    const coreMaterial = useMemo(() => {
+        return new THREE.MeshStandardMaterial({
+            color: new THREE.Color(props.color),
+            emissive: new THREE.Color(props.color),
+            emissiveIntensity: 4,
+            roughness: 0.2,
+            metalness: 0.3,
+        });
+    }, [props.color]);
+
+    const fresnelMaterial = useMemo(() => {
+        return createFresnelMaterial(props.color);
+    }, [props.color]);
+
     const neonMaterial = useNeonMaterial({ color: props.color, intensity: 0.9 });
 
     const obj = useLoader(OBJLoader, props.path) as THREE.Group
 
     React.useEffect(() => {
         obj.traverse((child) => {
+
             if ((child as THREE.Mesh).isMesh) {
-                (child as THREE.Mesh).material = neonMaterial;
+                (child as THREE.Mesh).material = fresnelMaterial;
             }
+
+
+
         });
-    }, [obj, neonMaterial]);
+    }, [obj, coreMaterial]);
 
     return (
-        <primitive
-            object={obj}
-            onClick={() => click(!clicked)}
-            onPointerOver={() => onHover(true)}
-            onPointerOut={() => onHover(false)}
-            position={props.position}
-            scale={props.scale}
-
-
-        />
+        <>
+            <primitive
+                object={obj}
+                position={props.position}
+                scale={props.scale}
+            />
+        </>
     )
 
 }
@@ -155,13 +222,12 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 near={0.1}
                 far={1000}
             />
-            {/* <OrbitControls
-            maxPolarAngle={Math.PI / 2.2}
-            minPolarAngle={Math.PI / 20}
-            maxDistance={8}
-            minDistance={1}
-            enablePan={false}
-            target={[0, 1.5, 0]} /> */}
+            {/* 
+            <NeonMesh
+                geometry={new THREE.TorusKnotGeometry(1, 0.3, 100, 16)}
+                color="#ff00ff"
+            /> */}
+
             <EffectComposer>
                 <Bloom
                     intensity={0.2}
