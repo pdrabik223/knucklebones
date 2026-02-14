@@ -119,7 +119,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
         <pointLight position={[-20, -20, -20]} />
 
-        <Obj position={new THREE.Vector3(6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_A.obj"} />
+        <Obj position={new THREE.Vector3(6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_D.obj"} />
         <Obj position={new THREE.Vector3(-6, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_B.obj"} />
         <Obj position={new THREE.Vector3(0, 0, 0)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_C.obj"} />
 
