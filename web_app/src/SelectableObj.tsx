@@ -15,7 +15,7 @@ export interface SelectableObjRef {
 
 export function SelectableObj(props: SelectableObjRef) {
 
-    const neonMaterial = useNeonMaterial({ color: props.light ? props.color : "#000000", intensity: props.light ? 2 : 0});
+    const neonMaterial = useNeonMaterial({ color: props.light ? props.color : "#000000", intensity: props.light ? 2 : 0 });
 
     const meshesRef = useRef<THREE.Mesh[]>([]);
     const phaseOffsetRef = useRef<number>(Math.random() * Math.PI * 2);
@@ -40,13 +40,12 @@ export function SelectableObj(props: SelectableObjRef) {
 
 
     useFrame(({ clock }) => {
-        if (!props.light && lightUpAnimationCounter > 200) return;
+        if (!props.light && lightUpAnimationCounter < 200) return;
         let flashIntensity = 4
         let color = "#ffffff"
         if (!hovered) {
             const time = clock.getElapsedTime() + phaseOffsetRef.current;
             flashIntensity = 3 + 2 * Math.sin(time * 3) * Math.sin(time * 1.3);
-
         }
 
         meshesRef.current.forEach((mesh) => {
