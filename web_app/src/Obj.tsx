@@ -7,15 +7,14 @@ import { useNeonMaterial } from './GameRender';
 
 export interface ObRef {
     position: THREE.Vector3,
-    scale: THREE.Vector3,
     path: string,
-    color: string;
+    color: THREE.Color;
     light: boolean;
 }
 
 export function Obj(props: ObRef) {
 
-    const neonMaterial = useNeonMaterial({ color: props.light ? props.color : "#000000", intensity: props.light ? 2 : 0 });
+    const neonMaterial = useNeonMaterial({ color: props.light ? props.color : new THREE.Color("#000000"), intensity: props.light ? 2 : 0 });
     const meshesRef = useRef<THREE.Mesh[]>([]);
     const phaseOffsetRef = useRef<number>(Math.random() * Math.PI * 2);
 
@@ -83,7 +82,7 @@ export function Obj(props: ObRef) {
             <primitive
                 object={obj}
                 position={props.position}
-                scale={props.scale} />
+                scale={[0.5, 0.5, 0.5]} />
         </>
     );
 

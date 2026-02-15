@@ -1,6 +1,6 @@
-import { Environment, OrbitControls, PerspectiveCamera, Stats } from '@react-three/drei';
+import { Environment, PerspectiveCamera, Stats } from '@react-three/drei';
 
-import { useRef, useState, type JSX } from 'react'
+import { useRef, useState } from 'react'
 import * as THREE from 'three'
 import * as React from 'react'
 import { Canvas } from '@react-three/fiber';
@@ -12,18 +12,18 @@ import { SelectableObj } from './SelectableObj';
 
 
 interface NeonMaterialProps {
-    color?: string;
+    color?: THREE.Color;
     intensity?: number;
 }
 
 export function useNeonMaterial({
-    color = "#00ffff",
+    color = new THREE.Color("#00ffff"),
     intensity = 5,
 }: NeonMaterialProps) {
     return useMemo(() => {
         const material = new THREE.MeshStandardMaterial({
             color: new THREE.Color("#ffffff"),
-            emissive: new THREE.Color(color),
+            emissive: color,
             emissiveIntensity: intensity,
             metalness: 0.5,
             roughness: 0.4,
@@ -33,6 +33,20 @@ export function useNeonMaterial({
     }, [color, intensity]);
 }
 
+const ColorsMap: THREE.Color[] = [
+    new THREE.Color("#000000"), // Disabled
+
+    new THREE.Color("#00c8ff"),
+    new THREE.Color("#000dff"),
+    new THREE.Color("#39FF14"),
+    new THREE.Color("#FFFF33"),
+    new THREE.Color("#FF5F1F"),
+
+    new THREE.Color("#ff0000"),
+
+    new THREE.Color("#ffffff"), // Enabled
+
+]
 
 
 export interface GameRenderRef {
@@ -51,7 +65,8 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
     const [size, setSize] = useState<Size>({ width: 0, height: 0 });
     const [mouseCords, setMouseCords] = useState<Size>({ width: 0, height: 0 });
     const [hoverColumn, setHoverColumn] = useState<number | null>(null)
-    const [selectedColumn, setSelectedColumn] = useState<number | null>(null)
+
+
 
     React.useLayoutEffect(() => {
         const element = ref.current?.parentElement;
@@ -70,10 +85,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
     React.useEffect(() => {
         const updatePosition = (event: MouseEvent) => {
-
-
             setMouseCords({ width: event.clientX, height: event.clientY });
-
         };
 
         window.addEventListener("mousemove", updatePosition);
@@ -83,8 +95,8 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
         };
     }, []);
 
-    const spaceBetweenGravestones = 8
-
+    const gravestoneOffset = 8
+    let i = 0;
     return <div ref={ref}>
         <Canvas
             shadows
@@ -97,29 +109,29 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
             <directionalLight position={[10, 20, 10]} color={"#cccccc"} castShadow={true} />
 
-            <Obj light={true} color={"#00ff37"} position={new THREE.Vector3(6, 0, 0 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_A.obj"} />
-            <Obj light={true} color={"#f1ff2b"} position={new THREE.Vector3(-6, 0, 0 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_B.obj"} />
-            <Obj light={true} color={"#0099ff"} position={new THREE.Vector3(0, 0, 0 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_C.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, 0 * gravestoneOffset)} path={"./gravestone_A.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, 0 * gravestoneOffset)} path={"./gravestone_B.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, 0 * gravestoneOffset)} path={"./gravestone_C.obj"} />
 
-            <Obj light={false} color={"#ff4800"} position={new THREE.Vector3(6, 0, -1 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_D.obj"} />
-            <Obj light={false} color={"#ffffff"} position={new THREE.Vector3(-6, 0, -1 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_E.obj"} />
-            <Obj light={false} color={"#c800ff"} position={new THREE.Vector3(0, 0, -1 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_F.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, -1 * gravestoneOffset)} path={"./gravestone_D.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, -1 * gravestoneOffset)} path={"./gravestone_E.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, -1 * gravestoneOffset)} path={"./gravestone_F.obj"} />
 
-            <Obj light={true} color={"#ff4800"} position={new THREE.Vector3(6, 0, -2 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_G.obj"} />
-            <Obj light={true} color={"#c800ff"} position={new THREE.Vector3(-6, 0, -2 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_H.obj"} />
-            <Obj light={true} color={"#0099ff"} position={new THREE.Vector3(0, 0, -2 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_I.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, -2 * gravestoneOffset)} path={"./gravestone_G.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, -2 * gravestoneOffset)} path={"./gravestone_H.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, -2 * gravestoneOffset)} path={"./gravestone_I.obj"} />
 
-            <Obj light={true} color={"#00ff37"} position={new THREE.Vector3(6, 0, -5 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_J.obj"} />
-            <Obj light={true} color={"#f1ff2b"} position={new THREE.Vector3(-6, 0, -5 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_K.obj"} />
-            <Obj light={true} color={"#ff4800"} position={new THREE.Vector3(0, 0, -5 * spaceBetweenGravestones)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_L.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, -5 * gravestoneOffset)} path={"./gravestone_J.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, -5 * gravestoneOffset)} path={"./gravestone_K.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, -5 * gravestoneOffset)} path={"./gravestone_L.obj"} />
 
-            <Obj light={true} color={"#00ff37"} position={new THREE.Vector3(6, 0, -6 * spaceBetweenGravestones * 1.2)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_M.obj"} />
-            <Obj light={true} color={"#ff4800"} position={new THREE.Vector3(-6, 0, -6 * spaceBetweenGravestones * 1.2)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_N.obj"} />
-            <Obj light={true} color={"#0099ff"} position={new THREE.Vector3(0, 0, -6 * spaceBetweenGravestones * 1.2)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_O.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, -6 * gravestoneOffset * 1.2)} path={"./gravestone_M.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, -6 * gravestoneOffset * 1.2)} path={"./gravestone_N.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, -6 * gravestoneOffset * 1.2)} path={"./gravestone_O.obj"} />
 
-            <Obj light={true} color={"#c800ff"} position={new THREE.Vector3(6, 0, -7 * spaceBetweenGravestones * 1.4)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_P.obj"} />
-            <Obj light={true} color={"#f1ff2b"} position={new THREE.Vector3(-6, 0, -7 * spaceBetweenGravestones * 1.4)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_R.obj"} />
-            <Obj light={true} color={"#c800ff"} position={new THREE.Vector3(0, 0, -7 * spaceBetweenGravestones * 1.4)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./gravestone_S.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, -7 * gravestoneOffset * 1.4)} path={"./gravestone_P.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, -7 * gravestoneOffset * 1.4)} path={"./gravestone_R.obj"} />
+            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, -7 * gravestoneOffset * 1.4)} path={"./gravestone_S.obj"} />
 
             <mesh
                 onPointerOver={(e) => {
@@ -157,9 +169,9 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 <meshPhongMaterial color={"black"} opacity={0.1} transparent />
             </mesh>
 
-            <SelectableObj light={hoverColumn == 0} color={"#c800ff"} position={new THREE.Vector3(6, 0, 7)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./arrow_A.obj"} />
-            <SelectableObj light={hoverColumn == 1} color={"#c800ff"} position={new THREE.Vector3(0, 0, 7)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./arrow_B.obj"} />
-            <SelectableObj light={hoverColumn == 2} color={"#c800ff"} position={new THREE.Vector3(-6, 0, 7)} scale={new THREE.Vector3(0.5, 0.5, 0.5)} path={"./arrow_C.obj"} />
+            <SelectableObj light={hoverColumn == 0} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, 7)} path={"./arrow_A.obj"} />
+            <SelectableObj light={hoverColumn == 1} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, 7)} path={"./arrow_B.obj"} />
+            <SelectableObj light={hoverColumn == 2} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, 7)} path={"./arrow_C.obj"} />
 
 
             <axesHelper />

@@ -7,25 +7,21 @@ import { useNeonMaterial } from './GameRender';
 
 export interface SelectableObjRef {
     position: THREE.Vector3,
-    scale: THREE.Vector3,
     path: string,
-    color: string;
+    color: THREE.Color;
     light: boolean;
 }
 
 export function SelectableObj(props: SelectableObjRef) {
 
-    const neonMaterial = useNeonMaterial({ color: props.light ? props.color : "#000000", intensity: props.light ? 2 : 0 });
+    const neonMaterial = useNeonMaterial({ color: props.light ? props.color : new THREE.Color("#000000"), intensity: props.light ? 2 : 0 });
 
     const meshesRef = useRef<THREE.Mesh[]>([]);
     const phaseOffsetRef = useRef<number>(Math.random() * Math.PI * 2);
 
     const [lightUpAnimationCounter, setLightUpAnimationCounter] = useState(0);
-
+    const [animationDone, setAnimationDone] = useState(false);
     const obj = useLoader(OBJLoader, props.path) as THREE.Group;
-
-    const [hovered, setHovered] = useState(false);
-    const [active, setActive] = useState(false);
 
     React.useEffect(() => {
         meshesRef.current = [];
@@ -40,13 +36,12 @@ export function SelectableObj(props: SelectableObjRef) {
 
 
     useFrame(({ clock }) => {
-        if (!props.light && lightUpAnimationCounter < 200) return;
+        if (!animationDone) return;
         let flashIntensity = 4
         let color = "#ffffff"
-        if (!hovered) {
-            const time = clock.getElapsedTime() + phaseOffsetRef.current;
-            flashIntensity = 3 + 2 * Math.sin(time * 3) * Math.sin(time * 1.3);
-        }
+
+        const time = clock.getElapsedTime() + phaseOffsetRef.current;
+        flashIntensity = 3 + 2 * Math.sin(time * 3) * Math.sin(time * 1.3);
 
         meshesRef.current.forEach((mesh) => {
             if (mesh.material instanceof THREE.MeshStandardMaterial) {
@@ -57,7 +52,8 @@ export function SelectableObj(props: SelectableObjRef) {
     });
 
     useFrame(({ clock }) => {
-        if (lightUpAnimationCounter > 200) return;
+        if (animationDone) return;
+        if (lightUpAnimationCounter == 200) setAnimationDone(true)
 
         const time = clock.getElapsedTime();
         const flashIntensity = 4 * Math.sin(time * 6.2) * Math.sin(time * 3.1) * Math.sin(time * 4.12);
@@ -74,12 +70,9 @@ export function SelectableObj(props: SelectableObjRef) {
     return (
         <>
             <primitive
-                onClick={() => setActive(!active)}
-                onPointerOver={() => setHovered(true)}
-                onPointerOut={() => setHovered(false)}
                 object={obj}
                 position={props.position}
-                scale={props.scale} />
+                scale={[0.5, 0.5, 0.5]} />
         </>
     );
 
