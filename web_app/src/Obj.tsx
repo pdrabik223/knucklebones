@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/Addons.js';
-import { useNeonMaterial } from './GameRender';
+import { useNeonMaterial } from './useNeonMaterial';
 
 export interface ObRef {
     position: THREE.Vector3,
