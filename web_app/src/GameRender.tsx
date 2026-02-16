@@ -3,13 +3,43 @@ import { Environment, PerspectiveCamera, Stats } from '@react-three/drei';
 import { useRef, useState } from 'react'
 import * as THREE from 'three'
 import * as React from 'react'
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 // import statueUrl from '../public/gravestones.obj'
 import { useMemo } from "react";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Obj } from './Obj';
 import { SelectableObj } from './SelectableObj';
+import type { Vector } from 'three/examples/jsm/Addons.js';
 
+
+export function Cube() {
+
+    const [pressed, setPressed] = useState(false)
+
+    let rotationVector = new THREE.Vector3(Math.PI / 20, Math.PI / 20, Math.PI / 20)
+
+    useFrame(({ clock }) => {
+
+
+
+    });
+
+    return <>
+        <mesh
+            onPointerOver={(e) => {
+                e.stopPropagation()
+            }}
+            onPointerOut={() => { }}
+            onPointerDown={() => { setPressed(true) }}
+            position={new THREE.Vector3(12, 0, 0)}>
+            <boxGeometry args={[3, 3, 3]} />
+            <meshPhongMaterial color={"black"} opacity={0} transparent />
+        </mesh>
+        <SelectableObj rotation={rotationVector} light={true} color={ColorsMap[7 % ColorsMap.length]} position={new THREE.Vector3(12, 0, 0)} path={"./cube.obj"} />
+    </>
+
+
+}
 
 interface NeonMaterialProps {
     color?: THREE.Color;
@@ -37,7 +67,7 @@ const ColorsMap: THREE.Color[] = [
     new THREE.Color("#000000"), // Disabled
 
     new THREE.Color("#00c8ff"),
-    new THREE.Color("#000dff"),
+    new THREE.Color("#0055ff"), // this one does not 
     new THREE.Color("#39FF14"),
     new THREE.Color("#FFFF33"),
     new THREE.Color("#FF5F1F"),
@@ -54,6 +84,13 @@ export interface GameRenderRef {
 }
 
 
+
+type Orientation = {
+    alpha: number | null;
+    beta: number | null;
+    gamma: number | null;
+};
+
 type Size = {
     width: number;
     height: number;
@@ -68,6 +105,45 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
 
 
+    function cameraShift(defaultPosition: THREE.Vector3) {
+        if (size.height > size.width * 1.2) {
+            if (orientation.alpha === null || orientation.beta === null)
+                return defaultPosition
+
+            defaultPosition.x += orientation.alpha * 3
+            defaultPosition.y += orientation.beta * 3
+
+            return defaultPosition
+        }
+        defaultPosition.x += ((mouseCords.width / size.width) * 2 - 1) * 3
+        defaultPosition.y += ((mouseCords.height / size.height) * 2 - 1) * 3
+
+        return defaultPosition
+
+    }
+    const [orientation, setOrientation] = useState<Orientation>({
+        alpha: null,
+        beta: null,
+        gamma: null,
+    });
+
+    React.useEffect(() => {
+        const handleOrientation = (event: DeviceOrientationEvent) => {
+            setOrientation({
+                alpha: event.alpha,
+                beta: event.beta,
+                gamma: event.gamma,
+            });
+        };
+
+        window.addEventListener("deviceorientation", handleOrientation);
+
+        return () => {
+            window.removeEventListener("deviceorientation", handleOrientation);
+        };
+    }, []);
+
+
     React.useLayoutEffect(() => {
         const element = ref.current?.parentElement;
         if (!element) return;
@@ -75,6 +151,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
         const observer = new ResizeObserver((entries: ResizeObserverEntry[]) => {
             const entry = entries[0];
             const { width, height } = entry.contentRect;
+
             setSize({ width, height });
         });
 
@@ -169,15 +246,16 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 <meshPhongMaterial color={"black"} opacity={0.1} transparent />
             </mesh>
 
+
             <SelectableObj light={hoverColumn == 0} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, 7)} path={"./arrow_A.obj"} />
             <SelectableObj light={hoverColumn == 1} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, 7)} path={"./arrow_B.obj"} />
             <SelectableObj light={hoverColumn == 2} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, 7)} path={"./arrow_C.obj"} />
 
-
+            <Cube />
             <axesHelper />
             <PerspectiveCamera
                 makeDefault
-                position={[0 + ((mouseCords.width / size.width) * 2 - 1) * 3, 23 + ((mouseCords.height / size.height) * 2 - 1) * 3, 25]}
+                position={cameraShift(new THREE.Vector3(3, 23, 25))}
                 rotation={[
                     -Math.PI / 6,
                     0,

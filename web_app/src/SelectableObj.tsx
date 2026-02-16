@@ -10,6 +10,7 @@ export interface SelectableObjRef {
     path: string,
     color: THREE.Color;
     light: boolean;
+    rotation?: THREE.Vector3,
 }
 
 export function SelectableObj(props: SelectableObjRef) {
@@ -20,7 +21,8 @@ export function SelectableObj(props: SelectableObjRef) {
     const phaseOffsetRef = useRef<number>(Math.random() * Math.PI * 2);
 
     const [lightUpAnimationCounter, setLightUpAnimationCounter] = useState(0);
-    const [animationDone, setAnimationDone] = useState(false);
+    const [startAnimationDone, setStartAnimationDone] = useState(false);
+
     const obj = useLoader(OBJLoader, props.path) as THREE.Group;
 
     React.useEffect(() => {
@@ -36,7 +38,7 @@ export function SelectableObj(props: SelectableObjRef) {
 
 
     useFrame(({ clock }) => {
-        if (!animationDone) return;
+        if (!startAnimationDone) return;
         let flashIntensity = 4
         let color = "#ffffff"
 
@@ -52,8 +54,8 @@ export function SelectableObj(props: SelectableObjRef) {
     });
 
     useFrame(({ clock }) => {
-        if (animationDone) return;
-        if (lightUpAnimationCounter == 200) setAnimationDone(true)
+        if (startAnimationDone) return
+        if (lightUpAnimationCounter == 200) setStartAnimationDone(true)
 
         const time = clock.getElapsedTime();
         const flashIntensity = 4 * Math.sin(time * 6.2) * Math.sin(time * 3.1) * Math.sin(time * 4.12);
@@ -65,6 +67,7 @@ export function SelectableObj(props: SelectableObjRef) {
         });
         setLightUpAnimationCounter(lightUpAnimationCounter + 1);
     });
+
 
 
     return (
