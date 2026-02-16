@@ -55,7 +55,11 @@ export function SelectableObj(props: SelectableObjRef) {
 
     useFrame(({ clock }) => {
         if (startAnimationDone) return
-        if (lightUpAnimationCounter == 200) setStartAnimationDone(true)
+        if (lightUpAnimationCounter == 200) {
+            setStartAnimationDone(true)
+            setLightUpAnimationCounter(0)
+        }
+        else setLightUpAnimationCounter(lightUpAnimationCounter + 1);
 
         const time = clock.getElapsedTime();
         const flashIntensity = 4 * Math.sin(time * 6.2) * Math.sin(time * 3.1) * Math.sin(time * 4.12);
@@ -65,7 +69,6 @@ export function SelectableObj(props: SelectableObjRef) {
                 mesh.material.emissiveIntensity = flashIntensity;
             }
         });
-        setLightUpAnimationCounter(lightUpAnimationCounter + 1);
     });
 
 
