@@ -9,7 +9,9 @@ import { ColorsMap } from './ColorsMap';
 
 export interface DiceObjRef {
     position: THREE.Vector3,
-    light: boolean;
+    light: boolean,
+    diceValue: number | null,
+    setDiceValue: (val: number) => void
 }
 export function abs(value: number) {
     return value < 0 ? -value : value
@@ -18,21 +20,18 @@ export function abs(value: number) {
 
 export function DiceOBj(props: DiceObjRef) {
 
-    const neonMaterial = useNeonMaterial({ color: new THREE.Color("#FF0000"), intensity: props.light ? 2 : 0 });
-
     const meshesRef = useRef<THREE.Mesh[]>([]);
-    const phaseOffsetRef = useRef<number>(Math.random() * Math.PI * 2);
 
     const [lightUpAnimationCounter, setLightUpAnimationCounter] = useState(0);
     const [startAnimationDone, setStartAnimationDone] = useState(false);
 
     const neonMaterials = [
-        useNeonMaterial({ color: ColorsMap[1], intensity: props.light ? 1.5 : 0 }),
-        useNeonMaterial({ color: ColorsMap[2], intensity: props.light ? 1.5 : 0 }),
-        useNeonMaterial({ color: ColorsMap[3], intensity: props.light ? 1.5 : 0 }),
-        useNeonMaterial({ color: ColorsMap[4], intensity: props.light ? 1.5 : 0 }),
-        useNeonMaterial({ color: ColorsMap[5], intensity: props.light ? 1.5 : 0 }),
-        useNeonMaterial({ color: ColorsMap[6], intensity: props.light ? 1.5 : 0 }),
+        useNeonMaterial({ color: ColorsMap[1], intensity: props.light ? 2 : 0 }),
+        useNeonMaterial({ color: ColorsMap[2], intensity: props.light ? 2 : 0 }),
+        useNeonMaterial({ color: ColorsMap[3], intensity: props.light ? 2 : 0 }),
+        useNeonMaterial({ color: ColorsMap[4], intensity: props.light ? 2 : 0 }),
+        useNeonMaterial({ color: ColorsMap[5], intensity: props.light ? 2 : 0 }),
+        useNeonMaterial({ color: ColorsMap[6], intensity: props.light ? 2 : 0 }),
     ];
 
     const diceFaces: THREE.Group<THREE.Object3DEventMap>[] = [
@@ -43,21 +42,22 @@ export function DiceOBj(props: DiceObjRef) {
         (useLoader(OBJLoader, "./dice_5.obj") as THREE.Group),
         (useLoader(OBJLoader, "./dice_6.obj") as THREE.Group),
     ];
-    // const dice = useLoader(OBJLoader, "./dice_1.obj") as THREE.Group
+
     React.useEffect(() => {
         for (let face = 0; face < diceFaces.length; face++)
+
             diceFaces[face].traverse((child) => {
                 if ((child as THREE.Mesh).isMesh) {
-                    (child as THREE.Mesh).material = neonMaterials[face];
+                    (child as THREE.Mesh).material = neonMaterials[props.diceValue == null ? face : props.diceValue - 1];
                     meshesRef.current.push(child as THREE.Mesh);
                 }
             });
 
-    }, [diceFaces, neonMaterial]);
+    }, [diceFaces]);
 
     const [rotationVector, setRotationVector] = useState(new THREE.Vector3(0, 0, 0));
     const [criticalSpeedReached, setCriticalSpeedReached] = useState(false);
-    const [randomValue, setRandomValue] = useState(0);
+    // const [randomValue, setRandomValue] = useState(0);
 
     useFrame(({ clock }) => {
 
@@ -71,6 +71,7 @@ export function DiceOBj(props: DiceObjRef) {
             rotationVector.z -= 0.001;
         }
 
+
         if (rotationVector.x < 0) rotationVector.x = 0;
         if (rotationVector.y < 0) rotationVector.y = 0;
         if (rotationVector.z < 0) rotationVector.z = 0;
@@ -79,30 +80,34 @@ export function DiceOBj(props: DiceObjRef) {
         if (rotationVector.y > 0.3) rotationVector.y = 0.3;
         if (rotationVector.z > 0.4) rotationVector.z = 0.4;
 
+        if (rotationVector.x == 0 && rotationVector.y == 0 && rotationVector.z == 0)
+            if (THREE.MathUtils.radToDeg(diceFaces[0].rotation.x) % 90 == 0 &&
+                THREE.MathUtils.radToDeg(diceFaces[0].rotation.y) % 90 == 0 &&
+                THREE.MathUtils.radToDeg(diceFaces[0].rotation.z) % 90 == 0) return
 
         if (rotationVector.x == 0.2 && rotationVector.y == 0.3 && rotationVector.z == 0.4) {
             setCriticalSpeedReached(true);
         }
 
         if (rotationVector.x == 0 && rotationVector.y == 0 && rotationVector.z == 0) {
+            const snapAngle = 90;
+            let x = THREE.MathUtils.radToDeg(diceFaces[0].rotation.x);
+            let y = THREE.MathUtils.radToDeg(diceFaces[0].rotation.y);
+            let z = THREE.MathUtils.radToDeg(diceFaces[0].rotation.z);
 
-            let offsetX = (diceFaces[0].rotation.x % (Math.PI / 2));
-            let offsetY = (diceFaces[0].rotation.y % (Math.PI / 2));
-            let offsetZ = (diceFaces[0].rotation.z % (Math.PI / 2));
-
-            if (abs(offsetX) < Math.PI / 20 && abs(offsetZ) < Math.PI / 20) {
-                let posX = (4 + Math.floor(diceFaces[0].rotation.x / (Math.PI / 4))) % 4;
-                let posY = (4 + Math.floor(diceFaces[0].rotation.y / (Math.PI / 4))) % 4;
-                let posZ = (4 + Math.floor(diceFaces[0].rotation.z / (Math.PI / 4))) % 4;
-                console.log(posX, posY, posZ);
-                return;
-            }
+            x = Math.round(x / snapAngle) * snapAngle;
+            y = Math.round(y / snapAngle) * snapAngle;
+            z = Math.round(z / snapAngle) * snapAngle;
 
             for (let face of diceFaces) {
-                face.rotateX(-(offsetX / 200));
-                // face.rotateY( - (offsetY / 200))
-                face.rotateZ(-(offsetZ / 200));
+                face.rotation.set(
+                    THREE.MathUtils.degToRad(x),
+                    THREE.MathUtils.degToRad(y),
+                    THREE.MathUtils.degToRad(z))
             }
+
+            if (criticalSpeedReached && props.diceValue == null)
+                props.setDiceValue(2 + 1)
 
         } else {
             for (let face of diceFaces) {
@@ -116,7 +121,7 @@ export function DiceOBj(props: DiceObjRef) {
     });
     useFrame(({ clock }) => {
         if (!startAnimationDone) return;
-        let flashIntensity = 0;
+        let flashIntensity = 2;
         let color = "#ffffff";
 
 

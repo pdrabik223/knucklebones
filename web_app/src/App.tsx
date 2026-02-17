@@ -1,4 +1,3 @@
-import diceLogo from './assets/dice.png'
 import './App.css'
 
 import { GameState } from './GameState';
@@ -7,7 +6,7 @@ import { Column } from './components/Column';
 
 import { PlayerHand } from './PlayerHand';
 
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { GameRender } from './GameRender';
 
 
@@ -15,47 +14,10 @@ export function App() {
 
   return <>
 
-    
-      <GameRender/>
-    
+
+    <GameRender playerName='Jonny' />
+
   </>
-}
-
-type Size = {
-  width: number;
-  height: number;
-};
-
-interface SizerRef {
-  children: React.ReactNode,
-
-}
-
-const Sizer: React.FC<SizerRef> = (props: SizerRef) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [size, setSize] = useState<Size>({ width: 0, height: 0 });
-
-  useLayoutEffect(() => {
-    const element = ref.current?.parentElement;
-    if (!element) return;
-
-    const observer = new ResizeObserver((entries: ResizeObserverEntry[]) => {
-      const entry = entries[0];
-      const { width, height } = entry.contentRect;
-      setSize({ width, height });
-    });
-
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} style={{ color: "red" }}>
-      {props.children}
-    </div>
-  );
-
 }
 
 

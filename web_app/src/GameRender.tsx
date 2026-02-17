@@ -10,9 +10,13 @@ import { SelectableObj } from './SelectableObj';
 
 import { DiceOBj } from './DiceOBj';
 import { ColorsMap } from './ColorsMap';
+import { GameState } from './GameState';
 
 
-export interface GameRenderRef { }
+export interface GameRenderRef {
+    playerName: string
+
+}
 
 type Orientation = {
     alpha: number | null;
@@ -25,16 +29,13 @@ type Size = {
     height: number;
 };
 
-
-
 export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
-
+    const [gameState, _] = useState(new GameState());
     const ref = useRef<HTMLDivElement | null>(null);
     const [size, setSize] = useState<Size>({ width: 0, height: 0 });
     const [mouseCords, setMouseCords] = useState<Size>({ width: 0, height: 0 });
-    const [hoverColumn, setHoverColumn] = useState<number | null>(null)
-
-
+    const [hoverColumn, setHoverColumn] = useState<number | null>(null);
+    const [diceValue, setDiceValue] = useState<number | null>(null);
 
     function cameraShift(defaultPosition: THREE.Vector3) {
         if (size.height > size.width * 1.2) {
@@ -104,7 +105,55 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
     }, []);
 
     const gravestoneOffset = 8
-    let i = 0;
+    function setValue(column: number) {
+        if (diceValue != null)
+            gameState.setCell(0, column, diceValue)
+        setDiceValue(null)
+    }
+
+    function graveBPath(x: number, y: number): string {
+        const paths = [
+            "./gravestone_J.obj"
+            , "./gravestone_K.obj"
+            , "./gravestone_L.obj"
+            , "./gravestone_M.obj"
+            , "./gravestone_N.obj"
+            , "./gravestone_O.obj"
+            , "./gravestone_P.obj"
+            , "./gravestone_R.obj"
+            , "./gravestone_S.obj"]
+        let id = x * 3 + y
+        return paths[id]
+    }
+    function graveAPath(x: number, y: number): string {
+        const paths = [
+            "./gravestone_A.obj"
+            , "./gravestone_B.obj"
+            , "./gravestone_C.obj"
+            , "./gravestone_D.obj"
+            , "./gravestone_E.obj"
+            , "./gravestone_F.obj"
+            , "./gravestone_G.obj"
+            , "./gravestone_H.obj"
+            , "./gravestone_I.obj"
+        ]
+        let id = x * 3 + y
+        return paths[id]
+    }
+
+    function getBoard(board: number[][], offset: number = 0, yOffsetMult: number = 1, gravePaths: boolean = false) {
+        let cellGrid = []
+
+        let path = gravePaths ? graveAPath : graveBPath;
+
+        for (let x = 0; x < 3; x++)
+            for (let y = 0; y < 3; y++)
+                cellGrid.push(
+                    <Obj light={true} color={ColorsMap[board[x][y]]} position={new THREE.Vector3((y * 6) - 6, 0, - (x + offset) * yOffsetMult)} path={path(x, y)} />
+                );
+        return cellGrid;
+    }
+
     return <div ref={ref}>
         <Canvas
             shadows
@@ -117,31 +166,13 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
             <directionalLight position={[10, 20, 10]} color={"#cccccc"} castShadow={true} />
 
+            {getBoard(gameState.boardA, 0, gravestoneOffset, true)}
+            {getBoard(gameState.boardB, 5, gravestoneOffset + 1.5)}
 
 
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, hoverColumn == 0 ? 1 : 0, 0 * gravestoneOffset)} path={"./gravestone_A.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, hoverColumn == 1 ? 1 : 0, 0 * gravestoneOffset)} path={"./gravestone_B.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, hoverColumn == 2 ? 1 : 0, 0 * gravestoneOffset)} path={"./gravestone_C.obj"} />
-
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, hoverColumn == 0 ? 1 : 0, - 1 * gravestoneOffset)} path={"./gravestone_D.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, hoverColumn == 1 ? 1 : 0, - 1 * gravestoneOffset)} path={"./gravestone_E.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, hoverColumn == 2 ? 1 : 0, - 1 * gravestoneOffset)} path={"./gravestone_F.obj"} />
-
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, hoverColumn == 0 ? 1 : 0, -2 * gravestoneOffset)} path={"./gravestone_G.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, hoverColumn == 1 ? 1 : 0, -2 * gravestoneOffset)} path={"./gravestone_H.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, hoverColumn == 2 ? 1 : 0, -2 * gravestoneOffset)} path={"./gravestone_I.obj"} />
-
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, hoverColumn == 0 ? 1 : 0, -5 * gravestoneOffset)} path={"./gravestone_J.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, hoverColumn == 1 ? 1 : 0, -5 * gravestoneOffset)} path={"./gravestone_K.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, hoverColumn == 2 ? 1 : 0, -5 * gravestoneOffset)} path={"./gravestone_L.obj"} />
-
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, hoverColumn == 0 ? 1 : 0, -6 * gravestoneOffset * 1.2)} path={"./gravestone_M.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, hoverColumn == 1 ? 1 : 0, -6 * gravestoneOffset * 1.2)} path={"./gravestone_N.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, hoverColumn == 2 ? 1 : 0, -6 * gravestoneOffset * 1.2)} path={"./gravestone_O.obj"} />
-
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, hoverColumn == 0 ? 1 : 0, -7 * gravestoneOffset * 1.4)} path={"./gravestone_P.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, hoverColumn == 1 ? 1 : 0, -7 * gravestoneOffset * 1.4)} path={"./gravestone_R.obj"} />
-            <Obj light={true} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, hoverColumn == 2 ? 1 : 0, -7 * gravestoneOffset * 1.4)} path={"./gravestone_S.obj"} />
+            <SelectableObj light={diceValue != null} color={ColorsMap[diceValue != null ? diceValue : 0]} position={new THREE.Vector3(6, 0, 7)} path={"./arrow_A.obj"} />
+            <SelectableObj light={diceValue != null} color={ColorsMap[diceValue != null ? diceValue : 0]} position={new THREE.Vector3(0, 0, 7)} path={"./arrow_B.obj"} />
+            <SelectableObj light={diceValue != null} color={ColorsMap[diceValue != null ? diceValue : 0]} position={new THREE.Vector3(-6, 0, 7)} path={"./arrow_C.obj"} />
 
             <mesh
                 onPointerOver={(e) => {
@@ -149,8 +180,8 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                     setHoverColumn(2)
                 }}
                 onPointerOut={() => setHoverColumn(-1)}
-                onClick={() => { }}
-                position={new THREE.Vector3(-6, 0, -30)}>
+                onClick={() => { setValue(2) }}
+                position={new THREE.Vector3(6, 0, -30)}>
                 <boxGeometry args={[5, 1, 80]} />
                 <meshPhongMaterial color={"black"} opacity={0.1} transparent />
             </mesh>
@@ -161,7 +192,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                     setHoverColumn(1)
                 }}
                 onPointerOut={() => setHoverColumn(-1)}
-                onClick={() => { }}
+                onClick={() => { setValue(1) }}
                 position={new THREE.Vector3(0, 0, -30)}>
                 <boxGeometry args={[5, 1, 80]} />
                 <meshPhongMaterial color={"black"} opacity={0.1} transparent />
@@ -173,18 +204,18 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                     setHoverColumn(0)
                 }}
                 onPointerOut={() => setHoverColumn(-1)}
-                onClick={() => { }}
-                position={new THREE.Vector3(6, 0, -30)}>
+                onClick={() => { setValue(0) }}
+                position={new THREE.Vector3(-6, 0, -30)}>
                 <boxGeometry args={[5, 1, 80]} />
                 <meshPhongMaterial color={"black"} opacity={0.1} transparent />
             </mesh>
 
 
-            <SelectableObj light={hoverColumn == 0} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(6, 0, 7)} path={"./arrow_A.obj"} />
-            <SelectableObj light={hoverColumn == 1} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(0, 0, 7)} path={"./arrow_B.obj"} />
-            <SelectableObj light={hoverColumn == 2} color={ColorsMap[++i % ColorsMap.length]} position={new THREE.Vector3(-6, 0, 7)} path={"./arrow_C.obj"} />
+            <DiceOBj
+                diceValue={diceValue}
+                setDiceValue={setDiceValue}
+                light={hoverColumn == 2} position={new THREE.Vector3(12, 0, 5)} />
 
-            <DiceOBj light={hoverColumn == 2} position={new THREE.Vector3(12, 0, 5)} />
             <axesHelper />
             <PerspectiveCamera
                 makeDefault
