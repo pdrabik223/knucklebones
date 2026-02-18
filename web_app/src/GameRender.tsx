@@ -60,14 +60,17 @@ type Size = {
 
 
 export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
-    const [gameState, _] = useState(new GameState("None", "None"));
+    const [gameState, _] = useState(new GameState("None1", "None2"));
 
     const ref = useRef<HTMLDivElement | null>(null);
     const [size, setSize] = useState<Size>({ width: 0, height: 0 });
     const [mouseCords, setMouseCords] = useState<Size>({ width: 0, height: 0 });
     const [hoverColumn, setHoverColumn] = useState<number | null>(null);
     const [diceValue, setDiceValue] = useState<number | null>(null);
-    const [playerActive, setPLayerActive] = useState<boolean>(true);
+
+    // const [playerActive, setPLayerActive] = useState<boolean>(true);
+    const [currentPlayer, setCurrentPlayer] = useState<string>("None1");
+    const [playerName, setPLayerName] = useState<string>("None1");
 
     function cameraShift(defaultPosition: THREE.Vector3) {
         if (size.height > size.width * 1.2) {
@@ -143,7 +146,11 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
         if (diceValue != null)
             gameState.setCell(0, column, diceValue)
         setDiceValue(null)
-        setPLayerActive(!playerActive)
+
+        if (currentPlayer == gameState.playerNames[0])
+            setCurrentPlayer(gameState.playerNames[1])
+        else
+            setCurrentPlayer(gameState.playerNames[0])
     }
 
 
@@ -170,8 +177,8 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
             <directionalLight position={[10, 20, 10]} color={"#cccccc"} castShadow={true} />
 
-            {getBoard(gameState.boardA, 0, gravestoneOffset, true)}
-            {getBoard(gameState.boardB, 5, gravestoneOffset + 1.5)}
+            {getBoard(gameState.getBoard(playerName), 0, gravestoneOffset, true)}
+            {getBoard(gameState.getBoard("not current plauer"), 5, gravestoneOffset + 1.5)}
 
             <Text3D
                 font="TiltNeon-Regular-VariableFont_XROT,YROT.json"
@@ -182,14 +189,13 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 bevelThickness={0.02}
                 bevelSize={0.02}
                 bevelSegments={5}
-                position={new THREE.Vector3(-15, 6, -30)}
+                position={new THREE.Vector3(-15, 6, currentPlayer == playerName ? -30 : -40)}
                 rotation={[
                     - Math.PI / 6,
                     0,
                     0,
-                ]}
-            >
-                NEON STUFF
+                ]}>
+                {gameState.playerNames[1]}
                 <meshStandardMaterial color={new THREE.Color("#ffffff")}
                     emissive={ColorsMap[2]}
                     emissiveIntensity={5}
@@ -207,14 +213,14 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 bevelThickness={0.02}
                 bevelSize={0.02}
                 bevelSegments={5}
-                position={new THREE.Vector3(-15, 6, 5)}
+                position={new THREE.Vector3(-15, 6, currentPlayer == playerName ? 5 : -5)}
                 rotation={[
                     - Math.PI / 6,
                     0,
                     0,
                 ]}
             >
-                NEON STUFF
+                {gameState.playerNames[0]}
                 <meshStandardMaterial color={new THREE.Color("#ffffff")}
                     emissive={ColorsMap[2]}
                     emissiveIntensity={5}
@@ -226,7 +232,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             <Arrow
                 light={diceValue != null}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
-                position={new THREE.Vector3(6, 0, playerActive ? 7 : -75)}
+                position={new THREE.Vector3(6, 0, currentPlayer == playerName ? 7 : -75)}
                 path={"./arrow_A.obj"}
                 enable={diceValue != null}
                 onClick={() => setValue(2)}
@@ -237,13 +243,13 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                     else
                         setHoverColumn(-1)
                 }}
-                reverseDirection={!playerActive}
+                reverseDirection={currentPlayer != playerName}
             />
 
             <Arrow
                 light={diceValue != null}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
-                position={new THREE.Vector3(0, 0, playerActive ? 7 : -75)}
+                position={new THREE.Vector3(0, 0, currentPlayer == playerName ? 7 : -75)}
                 path={"./arrow_B.obj"}
                 enable={diceValue != null}
                 onClick={() => setValue(1)}
@@ -254,13 +260,13 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                     else
                         setHoverColumn(-1)
                 }}
-                reverseDirection={!playerActive}
+                reverseDirection={currentPlayer != playerName}
             />
 
             <Arrow
                 light={diceValue != null}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
-                position={new THREE.Vector3(-6, 0, playerActive ? 7 : -75)}
+                position={new THREE.Vector3(-6, 0, currentPlayer == playerName ? 7 : -75)}
                 path={"./arrow_C.obj"}
                 enable={diceValue != null}
                 onClick={() => setValue(0)}
@@ -271,18 +277,18 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                     else
                         setHoverColumn(-1)
                 }}
-                reverseDirection={!playerActive}
+                reverseDirection={currentPlayer != playerName}
             />
 
 
             <DiceOBj
                 diceValue={diceValue}
                 setDiceValue={setDiceValue}
-                light={hoverColumn == 2} position={new THREE.Vector3(12, 0, playerActive ? 7 : -70)} />
+                light={hoverColumn == 2} position={new THREE.Vector3(12, 0, currentPlayer == playerName ? 7 : -70)} />
 
             <PerspectiveCamera
                 makeDefault
-                position={cameraShift(new THREE.Vector3(3, 23, playerActive ? 25 : 15))}
+                position={cameraShift(new THREE.Vector3(3, 23, currentPlayer == playerName ? 25 : 15))}
                 rotation={[
                     -Math.PI / 6,
                     0,

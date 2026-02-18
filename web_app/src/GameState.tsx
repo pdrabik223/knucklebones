@@ -9,7 +9,7 @@ export class GameState {
     [0, 0, 0]];
 
   playerNames: string[] = ['None', "None"]
-  
+
   constructor(name: string, name2: string) {
     this.playerNames[0] = name;
     this.playerNames[1] = name2;
@@ -29,9 +29,8 @@ export class GameState {
   }
 
   getBoard(name: string) {
-    if (this.playerNames[0] == name) return 0;
-    if (this.playerNames[1] == name) return 1;
-    return -1;
+    if (this.playerNames[0] == name) return this.boardA;
+    else return this.boardB;
   }
 
   sumPointsForColumn(board: number, column: number) {
