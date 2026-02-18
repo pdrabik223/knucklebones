@@ -27,6 +27,8 @@ export function SelectableObj(props: SelectableObjRef) {
 
     React.useEffect(() => {
         meshesRef.current = [];
+        if (props.rotation != undefined)
+            obj.rotation.set(props.rotation.x, props.rotation.y, props.rotation.z)
         obj.traverse((child) => {
 
             if ((child as THREE.Mesh).isMesh) {

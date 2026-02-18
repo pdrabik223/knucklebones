@@ -14,8 +14,7 @@ export function App() {
 
   return <>
 
-
-    <GameRender playerName='Jonny' />
+    <GameRender playerName='Jonny' opponentName='Randy' playerActive={true} />
 
   </>
 }
