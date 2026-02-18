@@ -8,7 +8,7 @@ export class GameState {
     [0, 0, 0],
     [0, 0, 0]];
 
-  playerNames: string[] = ['None', "None"]
+  playerNames: string[] = ['None1', "None2"]
 
   constructor(name: string, name2: string) {
     this.playerNames[0] = name;

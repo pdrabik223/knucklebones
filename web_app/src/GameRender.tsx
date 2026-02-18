@@ -70,7 +70,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
     // const [playerActive, setPLayerActive] = useState<boolean>(true);
     const [currentPlayer, setCurrentPlayer] = useState<string>("None1");
-    const [playerName, setPLayerName] = useState<string>("None1");
+    const [playerName, setPLayerName] = useState<string>("None2");
 
     function cameraShift(defaultPosition: THREE.Vector3) {
         if (size.height > size.width * 1.2) {
@@ -143,8 +143,12 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
 
     function setValue(column: number) {
-        if (diceValue != null)
-            gameState.setCell(0, column, diceValue)
+        if (diceValue != null) {
+            if (playerName == gameState.playerNames[0])
+                gameState.setCell(0, column, diceValue)
+            else
+                gameState.setCell(1, column, diceValue)
+        }
         setDiceValue(null)
 
         if (currentPlayer == gameState.playerNames[0])
