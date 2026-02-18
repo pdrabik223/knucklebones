@@ -11,19 +11,18 @@ import { GameRender } from './GameRender';
 
 
 export function App() {
-
   return <>
 
-    <GameRender playerName='Jonny' opponentName='Randy' playerActive={true} />
+    <GameRender />
 
   </>
 }
 
 
-const GameStateDisplay: React.FC<{}> = () => {
+const GameStateDisplay: React.FC<{ gameState: GameState }> = (props) => {
 
   const [diceValue, setDiceValue] = useState(0);
-  const [gameState, _] = useState(new GameState());
+  const [gameState, _] = useState(props.gameState);
   const [activePlayerId, setActivePlayerID] = useState(0);
 
   return <Row>

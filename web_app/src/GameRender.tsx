@@ -1,4 +1,4 @@
-import { Environment, PerspectiveCamera, Stats } from '@react-three/drei';
+import { Environment, PerspectiveCamera, Stats, Text3D } from '@react-three/drei';
 
 import { useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -44,9 +44,6 @@ function graveAPath(x: number, y: number): string {
 
 
 export interface GameRenderRef {
-    playerName: string,
-    opponentName: string,
-    playerActive: boolean
 
 }
 
@@ -63,13 +60,14 @@ type Size = {
 
 
 export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
-    const [gameState, _] = useState(new GameState());
+    const [gameState, _] = useState(new GameState("None", "None"));
+
     const ref = useRef<HTMLDivElement | null>(null);
     const [size, setSize] = useState<Size>({ width: 0, height: 0 });
     const [mouseCords, setMouseCords] = useState<Size>({ width: 0, height: 0 });
     const [hoverColumn, setHoverColumn] = useState<number | null>(null);
     const [diceValue, setDiceValue] = useState<number | null>(null);
-    const [playerActive, setPLayerActive] = useState<boolean>(props.playerActive);
+    const [playerActive, setPLayerActive] = useState<boolean>(true);
 
     function cameraShift(defaultPosition: THREE.Vector3) {
         if (size.height > size.width * 1.2) {
@@ -174,6 +172,56 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
             {getBoard(gameState.boardA, 0, gravestoneOffset, true)}
             {getBoard(gameState.boardB, 5, gravestoneOffset + 1.5)}
+
+            <Text3D
+                font="TiltNeon-Regular-VariableFont_XROT,YROT.json"
+                size={1}
+                height={0.2}
+                curveSegments={12}
+                bevelEnabled
+                bevelThickness={0.02}
+                bevelSize={0.02}
+                bevelSegments={5}
+                position={new THREE.Vector3(-15, 6, -30)}
+                rotation={[
+                    - Math.PI / 6,
+                    0,
+                    0,
+                ]}
+            >
+                NEON STUFF
+                <meshStandardMaterial color={new THREE.Color("#ffffff")}
+                    emissive={ColorsMap[2]}
+                    emissiveIntensity={5}
+                    roughness={0.4}
+                    metalness={0.5}
+                />
+            </Text3D>
+
+            <Text3D
+                font="TiltNeon-Regular-VariableFont_XROT,YROT.json"
+                size={1}
+                height={0.2}
+                curveSegments={12}
+                bevelEnabled
+                bevelThickness={0.02}
+                bevelSize={0.02}
+                bevelSegments={5}
+                position={new THREE.Vector3(-15, 6, 5)}
+                rotation={[
+                    - Math.PI / 6,
+                    0,
+                    0,
+                ]}
+            >
+                NEON STUFF
+                <meshStandardMaterial color={new THREE.Color("#ffffff")}
+                    emissive={ColorsMap[2]}
+                    emissiveIntensity={5}
+                    roughness={0.4}
+                    metalness={0.5}
+                />
+            </Text3D>
 
             <Arrow
                 light={diceValue != null}

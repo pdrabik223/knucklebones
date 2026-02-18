@@ -80,6 +80,7 @@ export function SelectableObj(props: SelectableObjRef) {
             <primitive
                 object={obj}
                 position={props.position}
+
                 scale={[0.5, 0.5, 0.5]} />
         </>
     );

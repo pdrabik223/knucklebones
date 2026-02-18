@@ -1,11 +1,18 @@
 export class GameState {
-  boardA: number[][] = [[0, 0, 0],
-  [0, 0, 0],
-  [0, 0, 0]];
-  boardB: number[][] = [[0, 0, 0],
-  [0, 0, 0],
-  [0, 0, 0]];
-  constructor() {
+  boardA: number[][] = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]];
+  boardB: number[][] = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]];
+
+  playerNames: string[] = ['None', "None"]
+  
+  constructor(name: string, name2: string) {
+    this.playerNames[0] = name;
+    this.playerNames[1] = name2;
   }
 
   canSetCell(board: number, column: number) {
@@ -19,6 +26,12 @@ export class GameState {
     }
     return false;
 
+  }
+
+  getBoard(name: string) {
+    if (this.playerNames[0] == name) return 0;
+    if (this.playerNames[1] == name) return 1;
+    return -1;
   }
 
   sumPointsForColumn(board: number, column: number) {
