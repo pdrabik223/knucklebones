@@ -143,18 +143,19 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
 
     function setValue(column: number) {
+        if (diceValue != null)
+            if (gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, column)) {
+                if (currentPlayer == gameState.playerNames[0]) {
+                    gameState.setCell(0, column, diceValue)
+                    setCurrentPlayer(gameState.playerNames[1])
+                }
+                else {
+                    gameState.setCell(1, column, diceValue)
+                    setCurrentPlayer(gameState.playerNames[0])
+                }
+                setDiceValue(null)
+            }
 
-        if (diceValue != null) {
-            if (currentPlayer == gameState.playerNames[0]) {
-                gameState.setCell(0, column, diceValue)
-                setCurrentPlayer(gameState.playerNames[1])
-            }
-            else {
-                gameState.setCell(1, column, diceValue)
-                setCurrentPlayer(gameState.playerNames[0])
-            }
-            setDiceValue(null)
-        }
     }
 
 
@@ -234,7 +235,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             </Text3D>
 
             <Arrow
-                light={diceValue != null}
+                light={diceValue != null && gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, 2)}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
                 position={new THREE.Vector3(6, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_A.obj"}
@@ -251,7 +252,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             />
 
             <Arrow
-                light={diceValue != null}
+                light={diceValue != null && gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, 1)}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
                 position={new THREE.Vector3(0, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_B.obj"}
@@ -268,7 +269,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             />
 
             <Arrow
-                light={diceValue != null}
+                light={diceValue != null && gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, 0)}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
                 position={new THREE.Vector3(-6, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_C.obj"}
