@@ -143,18 +143,18 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
 
     function setValue(column: number) {
-        if (diceValue != null) {
-            if (playerName == gameState.playerNames[0])
-                gameState.setCell(0, column, diceValue)
-            else
-                gameState.setCell(1, column, diceValue)
-        }
-        setDiceValue(null)
 
-        if (currentPlayer == gameState.playerNames[0])
-            setCurrentPlayer(gameState.playerNames[1])
-        else
-            setCurrentPlayer(gameState.playerNames[0])
+        if (diceValue != null) {
+            if (currentPlayer == gameState.playerNames[0]) {
+                gameState.setCell(0, column, diceValue)
+                setCurrentPlayer(gameState.playerNames[1])
+            }
+            else {
+                gameState.setCell(1, column, diceValue)
+                setCurrentPlayer(gameState.playerNames[0])
+            }
+            setDiceValue(null)
+        }
     }
 
 
@@ -182,7 +182,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             <directionalLight position={[10, 20, 10]} color={"#cccccc"} castShadow={true} />
 
             {getBoard(gameState.getBoard(playerName), 0, gravestoneOffset, true)}
-            {getBoard(gameState.getBoard("not current plauer"), 5, gravestoneOffset + 1.5)}
+            {getBoard(gameState.getBoard(gameState.getNextPlayer(playerName)), 4, gravestoneOffset + 1.5)}
 
             <Text3D
                 font="TiltNeon-Regular-VariableFont_XROT,YROT.json"
@@ -190,10 +190,10 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 height={0.2}
                 curveSegments={12}
                 bevelEnabled
-                bevelThickness={0.02}
+                bevelThickness={0.05}
                 bevelSize={0.02}
                 bevelSegments={5}
-                position={new THREE.Vector3(-15, 6, currentPlayer == playerName ? -30 : -40)}
+                position={new THREE.Vector3(-15, 6, currentPlayer == playerName ? -30 : -34)}
                 rotation={[
                     - Math.PI / 6,
                     0,
@@ -214,8 +214,8 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 height={0.2}
                 curveSegments={12}
                 bevelEnabled
-                bevelThickness={0.02}
-                bevelSize={0.02}
+                bevelThickness={0.05}
+                bevelSize={0.05}
                 bevelSegments={5}
                 position={new THREE.Vector3(-15, 6, currentPlayer == playerName ? 5 : -5)}
                 rotation={[
@@ -236,7 +236,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             <Arrow
                 light={diceValue != null}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
-                position={new THREE.Vector3(6, 0, currentPlayer == playerName ? 7 : -75)}
+                position={new THREE.Vector3(6, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_A.obj"}
                 enable={diceValue != null}
                 onClick={() => setValue(2)}
@@ -253,7 +253,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             <Arrow
                 light={diceValue != null}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
-                position={new THREE.Vector3(0, 0, currentPlayer == playerName ? 7 : -75)}
+                position={new THREE.Vector3(0, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_B.obj"}
                 enable={diceValue != null}
                 onClick={() => setValue(1)}
@@ -270,7 +270,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             <Arrow
                 light={diceValue != null}
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
-                position={new THREE.Vector3(-6, 0, currentPlayer == playerName ? 7 : -75)}
+                position={new THREE.Vector3(-6, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_C.obj"}
                 enable={diceValue != null}
                 onClick={() => setValue(0)}
@@ -288,7 +288,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
             <DiceOBj
                 diceValue={diceValue}
                 setDiceValue={setDiceValue}
-                light={hoverColumn == 2} position={new THREE.Vector3(12, 0, currentPlayer == playerName ? 7 : -70)} />
+                light={hoverColumn == 2} position={new THREE.Vector3(12, 0, currentPlayer == playerName ? 7 : -65)} />
 
             <PerspectiveCamera
                 makeDefault

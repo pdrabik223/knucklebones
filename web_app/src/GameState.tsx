@@ -25,12 +25,18 @@ export class GameState {
         if (this.boardB[i][column] == 0) return true;
     }
     return false;
+  }
+
+  getNextPlayer(current: string) {
+    let currentId = this.playerNames.findIndex((val) => { return val == current })
+    return this.playerNames[++currentId % this.playerNames.length]
 
   }
 
   getBoard(name: string) {
-    if (this.playerNames[0] == name) return this.boardA;
-    else return this.boardB;
+    if (this.playerNames[0] === name) return this.boardA;
+    if (this.playerNames[1] === name) return this.boardB;
+    throw "Invalid Name"
   }
 
   sumPointsForColumn(board: number, column: number) {
