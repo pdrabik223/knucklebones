@@ -68,9 +68,13 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
     const [hoverColumn, setHoverColumn] = useState<number | null>(null);
     const [diceValue, setDiceValue] = useState<number | null>(null);
 
+    const [runDiceAnimation, setRunDiceAnimation] = useState<boolean[]>([false]);
+
     // const [playerActive, setPLayerActive] = useState<boolean>(true);
     const [currentPlayer, setCurrentPlayer] = useState<string>("None1");
     const [playerName, setPLayerName] = useState<string>("None2");
+
+
 
     function cameraShift(defaultPosition: THREE.Vector3) {
         if (size.height > size.width * 1.2) {
@@ -139,23 +143,41 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
         };
     }, []);
 
+    React.useEffect(() => {
+        if (currentPlayer != playerName)
+            setRunDiceAnimation([true])
+    }, []);
+
     const gravestoneOffset = 8
 
+    function setValue(column: number, localDiceValue?: number) {
 
-    function setValue(column: number) {
-        if (diceValue != null)
+        let dice = localDiceValue ?? diceValue
+
+        if (dice != null) {
+
+            // setRunDiceAnimation(false)
             if (gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, column)) {
                 if (currentPlayer == gameState.playerNames[0]) {
-                    gameState.setCell(0, column, diceValue)
-                    setCurrentPlayer(gameState.playerNames[1])
+                    gameState.setCell(0, column, dice)
+                    // setCurrentPlayer(gameState.playerNames[1])
+                } else {
+                    gameState.setCell(1, column, dice)
+                    // setCurrentPlayer(gameState.playerNames[0])
                 }
-                else {
-                    gameState.setCell(1, column, diceValue)
-                    setCurrentPlayer(gameState.playerNames[0])
-                }
-                setDiceValue(null)
-            }
 
+                setDiceValue(null)
+                if (currentPlayer == playerName) {
+                    runDiceAnimation[0] = true
+                }
+
+                if (currentPlayer == gameState.playerNames[0])
+                    setCurrentPlayer(gameState.playerNames[1])
+                else
+                    setCurrentPlayer(gameState.playerNames[0])
+
+            }
+        }
     }
 
 
@@ -171,6 +193,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 );
         return cellGrid;
     }
+
 
     return <div ref={ref}>
         <Canvas
@@ -239,7 +262,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
                 position={new THREE.Vector3(6, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_A.obj"}
-                enable={diceValue != null}
+                enable={diceValue != null && gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, 2)}
                 onClick={() => setValue(2)}
                 onHoverChange={(e, isHovering) => {
                     e.stopPropagation()
@@ -256,7 +279,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
                 position={new THREE.Vector3(0, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_B.obj"}
-                enable={diceValue != null}
+                enable={diceValue != null && gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, 1)}
                 onClick={() => setValue(1)}
                 onHoverChange={(e, isHovering) => {
                     e.stopPropagation()
@@ -273,7 +296,7 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
                 color={ColorsMap[diceValue != null ? diceValue : 0]}
                 position={new THREE.Vector3(-6, 0, currentPlayer == playerName ? 7 : -70)}
                 path={"./arrow_C.obj"}
-                enable={diceValue != null}
+                enable={diceValue != null && gameState.canSetCell(currentPlayer == gameState.playerNames[0] ? 0 : 1, 0)}
                 onClick={() => setValue(0)}
                 onHoverChange={(e, isHovering) => {
                     e.stopPropagation()
@@ -288,8 +311,21 @@ export const GameRender: React.FC<GameRenderRef> = (props: GameRenderRef) => {
 
             <DiceOBj
                 diceValue={diceValue}
-                setDiceValue={setDiceValue}
-                light={hoverColumn == 2} position={new THREE.Vector3(12, 0, currentPlayer == playerName ? 7 : -65)} />
+                setDiceValue={async (val) => {
+                    runDiceAnimation[0] = false
+                    console.log(runDiceAnimation)
+                    if (currentPlayer != playerName) {
+                        await new Promise(r => setTimeout(r, 2000));
+                        setValue(Math.floor(Math.random() * 3), val)
+                    } else {
+                        // runDiceAnimation[0] = false
+                        setDiceValue(val)
+                    }
+                }}
+                light={hoverColumn == 2}
+                position={new THREE.Vector3(12, 0, currentPlayer == playerName ? 7 : -65)}
+                runDiceAnimation={runDiceAnimation}
+            />
 
             <PerspectiveCamera
                 makeDefault

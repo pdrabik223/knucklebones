@@ -11,7 +11,8 @@ export interface DiceObjRef {
     position: THREE.Vector3,
     light: boolean,
     diceValue: number | null,
-    setDiceValue: (val: number) => void
+    setDiceValue: (val: number) => void,
+    runDiceAnimation: boolean[]
 }
 export function abs(value: number) {
     return value < 0 ? -value : value
@@ -24,6 +25,8 @@ export function DiceOBj(props: DiceObjRef) {
 
     const [lightUpAnimationCounter, setLightUpAnimationCounter] = useState(0);
     const [startAnimationDone, setStartAnimationDone] = useState(false);
+    // const [runAnimation, setRunAnimation] = useState(props.runDiceAnimation[])
+
 
     const neonMaterials = [
         useNeonMaterial({ color: ColorsMap[1], intensity: props.light ? 2 : 0 }),
@@ -56,12 +59,12 @@ export function DiceOBj(props: DiceObjRef) {
     }, [diceFaces]);
 
     const [rotationVector, setRotationVector] = useState(new THREE.Vector3(0, 0, 0));
-    const [criticalSpeedReached, setCriticalSpeedReached] = useState(false);
+    const [criticalSpeedReached, setCriticalSpeedReached] = useState(true);
     // const [randomValue, setRandomValue] = useState(0);
 
     useFrame(({ clock }) => {
 
-        if (pressed) {
+        if (pressed || props.runDiceAnimation[0]) {
             rotationVector.x += 0.001;
             rotationVector.y += 0.002;
             rotationVector.z += 0.003;
@@ -70,7 +73,6 @@ export function DiceOBj(props: DiceObjRef) {
             rotationVector.y -= 0.001;
             rotationVector.z -= 0.001;
         }
-
 
         if (rotationVector.x < 0) rotationVector.x = 0;
         if (rotationVector.y < 0) rotationVector.y = 0;
@@ -87,6 +89,7 @@ export function DiceOBj(props: DiceObjRef) {
 
         if (rotationVector.x == 0.2 && rotationVector.y == 0.3 && rotationVector.z == 0.4) {
             setCriticalSpeedReached(true);
+            props.runDiceAnimation[0] = false
         }
 
         if (rotationVector.x == 0 && rotationVector.y == 0 && rotationVector.z == 0) {
@@ -106,8 +109,10 @@ export function DiceOBj(props: DiceObjRef) {
                     THREE.MathUtils.degToRad(z))
             }
 
-            if (criticalSpeedReached && props.diceValue == null)
-                props.setDiceValue(2 + 1)
+            if (criticalSpeedReached && props.diceValue == null) {
+                props.setDiceValue(Math.floor(Math.random() * 6 + 1))
+                // setRunAnimation(props.runDiceAnimation)
+            }
 
         } else {
             for (let face of diceFaces) {
